@@ -48,7 +48,7 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
 
     Ip * ip_H = (Ip *)(packet + eth_SIZE);
     int ip_SIZE = (ip_H->VHL & 0x0F) * 4;
-    int total_SIZE = ip_H->Total_LEN;
+    int total_SIZE = ntohs(ip_H->Total_LEN);
 
     Tcp * tcp_h = (Tcp *)(packet + eth_SIZE + ip_SIZE);
     int tcp_SIZE = ((tcp_h->OFF & 0xF0) >> 4) * 4;
@@ -66,9 +66,11 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
 
     /*************Tsunami Flood Attack************/
 
-    if(flag!=0x08 && flag!=0x10 && flag!= 0x18 && (eth_SIZE + ip_SIZE + tcp_SIZE) > 94)
+    if(flag!=0x08 && flag!=0x10 && flag!= 0x18 && (eth_SIZE + total_SIZE) > 94) // PSH, ACK, PSH + ACK, Packet SIZE
     {
         AddBlackList(BlackList, ip_H->s_ip);
+        printf("%02X\n", flag);
+        printf("%d\n", total_SIZE + eth_SIZE);
         printf("AddBlackList\n");
         return -1;
     }

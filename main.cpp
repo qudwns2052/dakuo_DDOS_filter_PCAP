@@ -41,9 +41,9 @@ int main(int argc, char* argv[])
     char errbuf[PCAP_ERRBUF_SIZE];
 
     char * My_ip_str = argv[2];
-    uint8_t My_ip[4];
-    inet_pton(AF_INET, My_ip_str, My_ip);
-    Node * BlackList = MakeNode(My_ip);
+//    uint8_t My_ip[4];
+//    inet_pton(AF_INET, My_ip_str, My_ip);
+    Node * BlackList = MakeNode(nullptr);
 
     pcap_t * handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
 
