@@ -1,21 +1,10 @@
 #include "linked_list.h"
 
-Node * MakeNode(uint8_t * ip)
-{
-    Node * newnode = (Node*)malloc(sizeof(Node));
-    if(ip==nullptr)
-        memset(newnode->ip, 0x00, 4);
-    else
-        memcpy(newnode->ip, ip, 4);
-    newnode->next = nullptr;
-
-    return newnode;
-}
-
-void AddBlackList(Node * head, uint8_t * ip)
+void Node::AddBlackList(Node * head, uint8_t * ip)
 {
     Node * temp = head;
-    Node * newnode = MakeNode(ip);
+    Node * newnode;
+    newnode = new Node(ip);
 
     while(temp->next != nullptr)
         temp = temp->next;
@@ -23,7 +12,7 @@ void AddBlackList(Node * head, uint8_t * ip)
     temp->next = newnode;
 }
 
-bool FindBlackList(Node * head, uint8_t * ip)
+bool Node::FindBlackList(Node * head, uint8_t * ip)
 {
     Node * temp = head;
 
@@ -34,4 +23,14 @@ bool FindBlackList(Node * head, uint8_t * ip)
         temp = temp->next;
     }
     return false;
+}
+
+void Node2::Add_count(void)
+{
+    this->count++;
+}
+
+int Node2::Get_count(void)
+{
+    return count;
 }

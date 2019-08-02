@@ -4,6 +4,7 @@
 #include <pcap.h>
 #include <stdint.h>
 #include <iostream>
+#include <time.h>
 
 #include "packet_filter.h"
 #include "linked_list.h"
@@ -26,7 +27,7 @@ int Packet_Classification(const u_char* packet, Node * BlackList)
 
     Ip * ip_H = (Ip *)(packet + eth_SIZE);
 
-    if(FindBlackList(BlackList, ip_H->s_ip))
+    if(BlackList->FindBlackList(BlackList, ip_H->s_ip))
     {
         printf("FindBlackList\n");
         return -1;
@@ -66,12 +67,13 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
 
     if(flag!=0x08 && flag!=0x10 && flag!= 0x18 && (eth_SIZE + total_SIZE) > 94) // PSH, ACK, PSH + ACK, Packet SIZE
     {
-        AddBlackList(BlackList, ip_H->s_ip);
+        BlackList->AddBlackList(BlackList, ip_H->s_ip);
         printf("%02X\n", flag);
         printf("%d\n", total_SIZE + eth_SIZE);
         printf("AddBlackList\n");
         return -1;
     }
+
     /*********************************************/
 
 

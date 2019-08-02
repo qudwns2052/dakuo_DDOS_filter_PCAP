@@ -44,7 +44,10 @@ int main(int argc, char* argv[])
 //    uint8_t My_ip[4];
 //    inet_pton(AF_INET, My_ip_str, My_ip);
 
-    Node * BlackList = MakeNode(nullptr);
+    Node * BlackList;
+    BlackList = new Node();
+//    BlackList = new Node(My_ip);
+
 
     pcap_t * handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
 
