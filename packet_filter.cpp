@@ -13,7 +13,7 @@
 enum {arp=0, icmp, igmp, tcp, udp};
 
 
-int Packet_Classification(const u_char* packet)
+int Packet_Classification(const u_char* packet, Node * BlackList)
 {
 
     Ethernet * eth_H = (Ethernet *)(packet);
@@ -25,8 +25,12 @@ int Packet_Classification(const u_char* packet)
         return -1;
 
     Ip * ip_H = (Ip *)(packet + eth_SIZE);
-    int ip_SIZE = (ip_H->VHL & 0x0F) * 4;
-    int total_SIZE = ip_H->Total_LEN;
+
+    if(FindBlackList(BlackList, ip_H->s_ip))
+    {
+        printf("FindBlackList\n");
+        return -1;
+    }
 
     if(ip_H->protocol == IPPROTO_ICMP)
         return icmp;
@@ -58,12 +62,6 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
 
     uint8_t flag=(tcp_h->flag & 0x3F);
 
-    if(FindBlackList(BlackList, ip_H->s_ip))
-    {
-        printf("FindBlackList\n");
-        return -1;
-    }
-
     /*************Tsunami Flood Attack************/
 
     if(flag!=0x08 && flag!=0x10 && flag!= 0x18 && (eth_SIZE + total_SIZE) > 94) // PSH, ACK, PSH + ACK, Packet SIZE
@@ -85,12 +83,12 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
     //    else if (flag == 0x04)
     //        printf("RST\n");
     //    else if (flag == 0x08)
-//        printf("PSH\n");
-//    else if (flag == 0x10)
-//        printf("ACK\n");
-//    else if (flag == 0x20)
-//        printf("RST\n");
-//    else printf("?\n");
+    //        printf("PSH\n");
+    //    else if (flag == 0x10)
+    //        printf("ACK\n");
+    //    else if (flag == 0x20)
+    //        printf("RST\n");
+    //    else printf("?\n");
 
 
     return 1;

@@ -40,9 +40,10 @@ int main(int argc, char* argv[])
     char* dev = argv[1];
     char errbuf[PCAP_ERRBUF_SIZE];
 
-    char * My_ip_str = argv[2];
+//    char * My_ip_str = argv[2];
 //    uint8_t My_ip[4];
 //    inet_pton(AF_INET, My_ip_str, My_ip);
+
     Node * BlackList = MakeNode(nullptr);
 
     pcap_t * handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
@@ -65,7 +66,7 @@ int main(int argc, char* argv[])
         if (res == -1 || res == -2) break;
 
         printf("---------Packet Classification----------\n");
-        int p = Packet_Classification(packet);
+        int p = Packet_Classification(packet, BlackList);
 
         if(p==arp)
             printf("arp\n");
@@ -76,15 +77,22 @@ int main(int argc, char* argv[])
         else if (p==tcp)
         {
             printf("tcp\n");
-            TCP_PACKET_Classification(packet, BlackList);
+            if(TCP_PACKET_Classification(packet, BlackList) == -1)  // if drop packet;
+            {
+                printf("drop\n");
+                continue;
+            }
         }
         else if (p==udp)
             printf("udp\n");
+        else if (p==-1)
+            printf("drop\n");
         else
         {
             continue;
         }
 
+        //send packet to my_server
 
     }
 
