@@ -16,6 +16,7 @@ enum {arp=0, icmp, igmp, tcp, udp};
 
 int Packet_Classification(const u_char* packet, Node * BlackList)
 {
+    /**************Packet Parsing********************/
 
     Ethernet * eth_H = (Ethernet *)(packet);
     int eth_SIZE = 14;
@@ -27,11 +28,19 @@ int Packet_Classification(const u_char* packet, Node * BlackList)
 
     Ip * ip_H = (Ip *)(packet + eth_SIZE);
 
+    /************************************************/
+
+    /************Check Ip in Black List**************/
+
     if(BlackList->FindBlackList(BlackList, ip_H->s_ip))
     {
         printf("FindBlackList\n");
         return -1;
     }
+
+    /************************************************/
+
+    /************Packet Classification***************/
 
     if(ip_H->protocol == IPPROTO_ICMP)
         return icmp;
@@ -42,11 +51,15 @@ int Packet_Classification(const u_char* packet, Node * BlackList)
     if(ip_H->protocol == IPPROTO_UDP)
         return udp;
 
+    /************************************************/
+
     return -1;
 }
 
 int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
 {
+
+    /**************Packet Parsing********************/
 
     Ethernet * eth_H = (Ethernet *)(packet);
     int eth_SIZE = 14;
@@ -62,6 +75,21 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
     int payload_len = (total_SIZE) - (ip_SIZE + tcp_SIZE);
 
     uint8_t flag=(tcp_h->flag & 0x3F);
+
+    /************************************************/
+
+    /***********XMAS or NULL Flag Attack**********/
+
+    if(flag==0x00 || flag==0x3f)
+    {
+        BlackList->AddBlackList(BlackList, ip_H->s_ip);
+        printf("%02X\n", flag);
+        printf("AddBlackList\n");
+        return -1;
+    }
+
+    /*********************************************/
+
 
     /*************Tsunami Flood Attack************/
 

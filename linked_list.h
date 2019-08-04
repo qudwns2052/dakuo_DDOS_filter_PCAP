@@ -7,6 +7,7 @@
 
 using namespace std;
 
+/**************Black ip List Class**************************/
 class Node
 {
 public:
@@ -27,6 +28,9 @@ public:
 
 };
 
+
+/**************Check Threshold ip List Class*****************/
+//sorry i don't know English. plz understand ^_^
 class Node2 : public Node
 {
 public:
