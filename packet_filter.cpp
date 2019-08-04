@@ -69,7 +69,7 @@ int Packet_Classification(const u_char* packet, Node * BlackList)
     return -1;
 }
 
-int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
+int TCP_PACKET_Classification(const u_char* packet, Node * BlackList, uint8_t * my_ip)
 {
 
     /**************Packet Parsing********************/
@@ -81,22 +81,38 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
     int ip_SIZE = (ip_H->VHL & 0x0F) * 4;
     int total_SIZE = ntohs(ip_H->Total_LEN);
 
-    Tcp * tcp_h = (Tcp *)(packet + eth_SIZE + ip_SIZE);
-    int tcp_SIZE = ((tcp_h->OFF & 0xF0) >> 4) * 4;
+    Tcp * tcp_H = (Tcp *)(packet + eth_SIZE + ip_SIZE);
+    int tcp_SIZE = ((tcp_H->OFF & 0xF0) >> 4) * 4;
 
     u_char * payload = (u_char*)(packet + eth_SIZE + ip_SIZE + tcp_SIZE);
     int payload_len = (total_SIZE) - (ip_SIZE + tcp_SIZE);
 
-    uint8_t flag=(tcp_h->flag & 0x3F);
+    uint16_t d_port = ntohs(tcp_H->d_port);
+    uint8_t flag=(tcp_H->flag & 0x3F);
 
     /************************************************/
 
+    /*****************Port Scan*******************/
+
+    if(flag != 0x12 && !memcmp(ip_H->s_ip,my_ip,4) && d_port !=0x0014 && d_port !=0x0015 && d_port !=0x0016
+            && d_port != 0x0035 && d_port != 0x0050 && d_port != 0x01bb) // if not 20, 21, 22, 53, 80, 443 and if not s_ip == my_ip And if not SYN+ACK
+    {
+        BlackList->AddBlackList(BlackList, ip_H->s_ip);
+        printf("%02X:%02X:%02X:%02X\n", ip_H->s_ip[0],ip_H->s_ip[1],ip_H->s_ip[2],ip_H->s_ip[3]);
+        printf("port : %02X%02X\n", (ntohs(tcp_H->d_port) >> 8) & 0xff , ntohs(tcp_H->d_port) & 0xff);
+        printf("flag : %02X\n", flag);
+        printf("AddBlackList\n");
+        return -1;
+    }
+
+    /*********************************************/
+    
     /***********XMAS or NULL Flag Attack**********/
 
     if(flag==0x00 || flag==0x3f)
     {
         BlackList->AddBlackList(BlackList, ip_H->s_ip);
-        printf("%02X\n", flag);
+        printf("flag : %02X\n", flag);
         printf("AddBlackList\n");
         return -1;
     }
@@ -136,3 +152,4 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList)
 
     return 1;
 }
+

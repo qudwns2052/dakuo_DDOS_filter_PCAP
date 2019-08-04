@@ -38,6 +38,10 @@ enum {arp=0, icmp, igmp, tcp, udp};
 int main(int argc, char* argv[])
 {
     char* dev = argv[1];
+    char* my_ip_str = argv[2];
+    uint8_t my_ip[4];
+    inet_pton(AF_INET, my_ip_str, my_ip);
+
     char errbuf[PCAP_ERRBUF_SIZE];
 
 //    char * My_ip_str = argv[2];
@@ -81,7 +85,7 @@ int main(int argc, char* argv[])
         {
             printf("tcp\n");
 
-            if(TCP_PACKET_Classification(packet, BlackList) == -1)  // if drop packet;
+            if(TCP_PACKET_Classification(packet, BlackList, my_ip) == -1)  // if drop packet;
             {
                 printf("drop\n");
                 continue;
@@ -105,4 +109,5 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
 
