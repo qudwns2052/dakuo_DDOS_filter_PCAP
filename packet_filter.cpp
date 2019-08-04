@@ -94,11 +94,11 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList, uint8_t * 
 
     /*****************Port Scan*******************/
 
-    if(flag != 0x12 && !memcmp(ip_H->s_ip,my_ip,4) && d_port !=0x0014 && d_port !=0x0015 && d_port !=0x0016
-            && d_port != 0x0035 && d_port != 0x0050 && d_port != 0x01bb) // if not 20, 21, 22, 53, 80, 443 and if not s_ip == my_ip And if not SYN+ACK
+    //flag != 0x12 &&
+    if(!memcmp(ip_H->d_ip,my_ip,4) && d_port !=0x0014 && d_port !=0x0015 && d_port !=0x0016
+            && d_port != 0x0035 && d_port != 0x0050 && d_port != 0x01bb) // if not 20, 21, 22, 53, 80, 443 and if not _ip == my_ip And if not SYN+ACK
     {
         BlackList->AddBlackList(BlackList, ip_H->s_ip);
-        printf("%02X:%02X:%02X:%02X\n", ip_H->s_ip[0],ip_H->s_ip[1],ip_H->s_ip[2],ip_H->s_ip[3]);
         printf("port : %02X%02X\n", (ntohs(tcp_H->d_port) >> 8) & 0xff , ntohs(tcp_H->d_port) & 0xff);
         printf("flag : %02X\n", flag);
         printf("AddBlackList\n");
