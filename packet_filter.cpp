@@ -40,6 +40,19 @@ int Packet_Classification(const u_char* packet, Node * BlackList)
 
     /************************************************/
 
+
+    /******************Land Attack*******************/
+
+    if(!memcmp(ip_H->d_ip,ip_H->s_ip,4))
+    {
+        BlackList->AddBlackList(BlackList, ip_H->s_ip);
+        printf("Land Attack\n");
+        printf("AddBlackList\n");
+        return -1;
+    }
+    /************************************************/
+
+
     /************Packet Classification***************/
 
     if(ip_H->protocol == IPPROTO_ICMP)
