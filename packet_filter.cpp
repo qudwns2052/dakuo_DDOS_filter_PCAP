@@ -10,6 +10,19 @@
 #include "linked_list.h"
 #include "packet_structure.h"
 
+#define FIN     0x01
+#define SYN     0x02
+#define RST     0x04
+#define PSH     0x08
+#define ACK     0x10
+#define URG     0x20
+#define XMAS    0x3f
+#define P_20    0x0014
+#define P_21    0x0015
+#define P_22    0x0016
+#define P_53    0x0035
+#define P_80    0x0050
+#define P_443   0x01bb
 
 enum {arp=0, icmp, igmp, tcp, udp};
 
@@ -94,9 +107,9 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList, uint8_t * 
 
     /*****************Port Scan*******************/
 
-    //flag != 0x12 &&
-    if(!memcmp(ip_H->d_ip,my_ip,4) && d_port !=0x0014 && d_port !=0x0015 && d_port !=0x0016
-            && d_port != 0x0035 && d_port != 0x0050 && d_port != 0x01bb) // if not 20, 21, 22, 53, 80, 443 and if not _ip == my_ip And if not SYN+ACK
+    //flag != SYN + ACK &&
+    if(!memcmp(ip_H->d_ip,my_ip,4) && d_port != P_20 && d_port != P_21 && d_port != P_22
+            && d_port != P_53 && d_port != P_80 && d_port != P_443) // if not 20, 21, 22, 53, 80, 443 and if not _ip == my_ip And if not SYN+ACK
     {
         BlackList->AddBlackList(BlackList, ip_H->s_ip);
         printf("port : %02X%02X\n", (ntohs(tcp_H->d_port) >> 8) & 0xff , ntohs(tcp_H->d_port) & 0xff);
@@ -109,7 +122,7 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList, uint8_t * 
     
     /***********XMAS or NULL Flag Attack**********/
 
-    if(flag==0x00 || flag==0x3f)
+    if(flag == XMAS || flag == 0)
     {
         BlackList->AddBlackList(BlackList, ip_H->s_ip);
         printf("flag : %02X\n", flag);
@@ -122,7 +135,7 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList, uint8_t * 
 
     /*************Tsunami Flood Attack************/
 
-    if(flag!=0x08 && flag!=0x10 && flag!= 0x18 && (eth_SIZE + total_SIZE) > 94) // PSH, ACK, PSH + ACK, Packet SIZE
+    if(flag!=PSH && flag!=ACK && flag!= PSH + ACK && (eth_SIZE + total_SIZE) > 94) // PSH, ACK, PSH + ACK, Packet SIZE
     {
         BlackList->AddBlackList(BlackList, ip_H->s_ip);
         printf("%02X\n", flag);
@@ -133,21 +146,6 @@ int TCP_PACKET_Classification(const u_char* packet, Node * BlackList, uint8_t * 
 
     /*********************************************/
 
-
-    //    printf("flag = ");
-    //    if(flag == 0x01)
-    //        printf("FIN\n");
-    //    else if (flag == 0x02)
-    //        printf("SYN\n");
-    //    else if (flag == 0x04)
-    //        printf("RST\n");
-    //    else if (flag == 0x08)
-    //        printf("PSH\n");
-    //    else if (flag == 0x10)
-    //        printf("ACK\n");
-    //    else if (flag == 0x20)
-    //        printf("RST\n");
-    //    else printf("?\n");
 
 
     return 1;
