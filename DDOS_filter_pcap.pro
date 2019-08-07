@@ -4,11 +4,11 @@ CONFIG -= app_bundle
 CONFIG -= qt
 LIBS += -lpcap
 SOURCES += \
-        linked_list.cpp \
+        ifctl.cpp \
         main.cpp \
         packet_filter.cpp
 
 HEADERS += \
-    linked_list.h \
+    ifctl.h \
     packet_filter.h \
     packet_structure.h

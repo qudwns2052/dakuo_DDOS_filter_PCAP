@@ -7,7 +7,7 @@ typedef struct ethernet_header
     uint8_t d_mac[6];
     uint8_t s_mac[6];
     uint16_t type;
-}Ethernet;
+} Ethernet;
 
 typedef struct ip_header
 {
@@ -21,7 +21,7 @@ typedef struct ip_header
     uint16_t checksum;
     uint8_t s_ip[4];
     uint8_t d_ip[4];
-}Ip;
+} Ip;
 
 typedef struct tcp_header
 {
@@ -34,4 +34,4 @@ typedef struct tcp_header
     uint16_t win_size;
     uint16_t check_sum;
     uint16_t urg_pointer;
-}Tcp;
+} Tcp;

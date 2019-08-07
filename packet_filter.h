@@ -1,10 +1,29 @@
 #pragma once
 
-#include <pcap.h>
-#include <stdint.h>
+#include "ifctl.h"
+#include "packet_structure.h"
+#include <cstdint>
 #include <iostream>
+#include <net/ethernet.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <set>
 
-#include "linked_list.h"
+#define FIN 0x01
+#define SYN 0x02
+#define RST 0x04
+#define PSH 0x08
+#define ACK 0x10
+#define URG 0x20
+#define XMAS 0x3f
+#define P_20 0x0014
+#define P_21 0x0015
+#define P_22 0x0016
+#define P_53 0x0035
+#define P_80 0x0050
+#define P_443 0x01bb
 
-int Packet_Classification(const u_char* packet, Node * BalckList);
-int TCP_PACKET_Classification(const u_char* packet, Node * BlackList, uint8_t * my_ip);
+enum PacketClass { UNCLASSIFIED, ARP, IP, ICMP, IGMP, TCP, UDP };
+enum AttackClass { ACCEPT, BLACKLIST, LAND_ATTACK, PORT_SCAN, ABNORMAL_FLAG, TSUNAMI };
+PacketClass packet_classification(const uint8_t *packet);
+AttackClass detect_attack(const uint8_t *packet, std::set<in_addr_t> blacklist, in_addr_t my_ip);
