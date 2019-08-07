@@ -1,19 +1,12 @@
-#include <net/ethernet.h>
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <pcap.h>
-#include <stdint.h>
-#include <iostream>
-
-#include "linked_list.h"
-#include "packet_structure.h"
+#include "ifctl.h"
 #include "packet_filter.h"
-
-
-#define ETHER_HEADER_SIZE   14
-#define LIST_SIZE   1000
-
-enum {arp=0, icmp, igmp, tcp, udp};
+#include "packet_structure.h"
+#include <arpa/inet.h>
+#include <iostream>
+#include <net/ethernet.h>
+#include <pcap.h>
+#include <set>
+#include <stdint.h>
 
 //void print_info(Ethernet * e, Ip * ip, Tcp * tcp)
 //{
@@ -34,80 +27,65 @@ enum {arp=0, icmp, igmp, tcp, udp};
 //    return (u_int16_t)(~sum);
 //}
 
-
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    char* dev = argv[1];
-    char* my_ip_str = argv[2];
-    uint8_t my_ip[4];
-    inet_pton(AF_INET, my_ip_str, my_ip);
+    // FastIO: If Activated, DO NOT USE printf/scanf!!
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
 
-    char errbuf[PCAP_ERRBUF_SIZE];
-
-//    char * My_ip_str = argv[2];
-//    uint8_t My_ip[4];
-//    inet_pton(AF_INET, My_ip_str, My_ip);
-
-    Node * BlackList;
-    BlackList = new Node();
-//    BlackList = new Node(My_ip);
-
-
-    pcap_t * handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
-
-    if (handle == nullptr)
-    {
-        fprintf(stderr, "couldn't open device %s: %s\n", dev, errbuf);
+    // Usage
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <interface>" << std::endl;
         return -1;
     }
 
-    while (true)
-    {
+    // Get Device Name
+    const char *dev = argv[1];
 
-        struct pcap_pkthdr* header;
-        const u_char* packet;
+    // Get My IP
+    in_addr_t myIP = get_my_ip(dev);
 
+    // PCAP Open
+    char errbuf[PCAP_ERRBUF_SIZE];
+    pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
+    if (handle == nullptr) {
+        std::cerr << "Couldn't open device " << dev << ": " << errbuf << std::endl;
+        return -1;
+    }
+
+    std::set<in_addr_t> blacklist;
+    while (true) {
+        struct pcap_pkthdr *header;
+        const uint8_t *packet;
         int res = pcap_next_ex(handle, &header, &packet);
 
-        if (res == 0) continue;
-        if (res == -1 || res == -2) break;
+        if (res == 0)
+            continue;
+        if (res < 0)
+            break;
 
-        printf("---------Packet Classification----------\n");
-        int p = Packet_Classification(packet, BlackList);
-
-        if(p==arp)
-            printf("arp\n");
-        else if (p==icmp)
-            printf("icmp\n");
-        else if (p==igmp)
-            printf("igmp\n");
-        else if (p==tcp)
-        {
-            printf("tcp\n");
-
-            if(TCP_PACKET_Classification(packet, BlackList, my_ip) == -1)  // if drop packet;
+        std::cout << "---------Packet Classification----------\n";
+        switch (packet_classification(packet)) {
+        case PacketClass::TCP:
+            if (detect_attack(packet, blacklist, myIP) != AttackClass::ACCEPT) // if drop packet;
             {
-                printf("drop\n");
+                std::cout << "Drop\n";
                 continue;
             }
-
+            break;
+        case PacketClass::ARP:
+        case PacketClass::ICMP:
+        case PacketClass::IGMP:
+        case PacketClass::UDP:
+        case PacketClass::IP:
+        case PacketClass::UNCLASSIFIED:
+            break;
         }
-        else if (p==udp)
-            printf("udp\n");
-        else if (p==-1)
-            printf("drop\n");
-        else
-        {
-            continue;
-        }
 
-        //send packet to my_server
-
+        // send packet to my_server
     }
 
     pcap_close(handle);
 
     return 0;
 }
-
-
